@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sprout Partner Revenue Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#17ad49;--sky:#02afce;--dark:#15261e;--lemon:#e0c651;
+    --cherry:#c14a76;--grey:#6c7570;--bg:#f2f7f4;--surface:#ffffff;
+    --surface2:#eaf3ed;--border:#cfe0d5;--text:#15261e;--muted:#6c7570;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:"Plus Jakarta Sans",sans-serif;min-height:100vh;}
+  body::before{content:"";position:fixed;inset:0;background-image:radial-gradient(circle,rgba(23,173,73,0.06) 1px,transparent 1px);background-size:28px 28px;pointer-events:none;z-index:0;}
+
+  /* ── HEADER ── */
+  header{background:var(--dark);box-shadow:0 2px 16px rgba(21,38,30,0.2);position:relative;z-index:10;}
+  .hdr{max-width:1280px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:14px;}
+  .logo img{height:36px;width:auto;display:block;}
+  .hdiv{width:1px;height:28px;background:rgba(255,255,255,0.14);}
+  .brand-label{color:rgba(255,255,255,0.82);font-size:13px;font-weight:600;line-height:1.3;}
+  .brand-label span{display:block;font-size:10px;font-weight:400;color:rgba(255,255,255,0.38);letter-spacing:0.04em;margin-top:1px;}
+  .hstats{display:flex;gap:24px;flex-wrap:wrap;}
+  .hstat{text-align:right;}
+  .hstat-v{font-size:19px;font-weight:800;color:var(--lemon);line-height:1;}
+  .hstat-l{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.35);margin-top:2px;}
+
+  /* ── WRAP ── */
+  .wrap{max-width:1280px;margin:0 auto;padding:32px 28px 64px;position:relative;z-index:1;}
+
+  /* ── PAGE HEAD ── */
+  .phead{margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid var(--border);}
+  .phead h1{font-size:clamp(20px,3vw,27px);font-weight:800;color:var(--dark);letter-spacing:-0.4px;}
+  .phead h1 span{color:var(--green);}
+  .phead p{font-size:13px;color:var(--muted);margin-top:5px;}
+
+  /* ── SUMMARY PANEL (TOP) ── */
+  .sumpanel{background:var(--dark);border-radius:16px;padding:26px 28px;margin-bottom:28px;position:relative;overflow:hidden;}
+  .sumpanel::before{content:"";position:absolute;top:-70px;right:-70px;width:260px;height:260px;background:rgba(23,173,73,0.14);border-radius:50%;}
+  .sumpanel::after{content:"";position:absolute;bottom:-50px;left:-50px;width:180px;height:180px;background:rgba(2,175,206,0.09);border-radius:50%;}
+  .sum-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px;position:relative;z-index:1;}
+  .sum-title{font-size:15px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px;}
+  .sum-title::before{content:"◆";color:var(--lemon);font-size:11px;}
+  .sumcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:18px;position:relative;z-index:1;}
+  .scard{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.09);border-radius:10px;padding:12px 14px;}
+  .scard-l{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.4);font-weight:700;margin-bottom:4px;}
+  .scard-v{font-size:19px;font-weight:800;color:#fff;}
+  .scard-v.big{font-size:24px;color:var(--lemon);}
+  .btbl{width:100%;border-collapse:collapse;font-size:12px;position:relative;z-index:1;}
+  .btbl th{text-align:left;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.08em;font-size:9px;font-weight:700;padding:6px 10px;border-bottom:1px solid rgba(255,255,255,0.09);}
+  .btbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.04);color:rgba(255,255,255,0.8);font-size:12px;}
+  .btbl tr:last-child td{border-bottom:none;}
+  .btbl tr:hover td{background:rgba(255,255,255,0.03);}
+  .btbl .trow td{border-top:1px solid rgba(255,255,255,0.14);padding-top:10px;font-weight:800;font-size:13px;color:var(--lemon);}
+  .btbl-empty{color:rgba(255,255,255,0.25);text-align:center;padding:16px;font-size:12px;}
+
+  /* ── CONTROLS ROW ── */
+  .controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px;}
+
+  /* Reseller / Referral toggle */
+  .type-toggle{display:flex;background:var(--surface);border:2px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 2px 6px rgba(21,38,30,0.06);}
+  .tbtn{padding:10px 18px;border:none;background:transparent;font-family:"Plus Jakarta Sans",sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:7px;white-space:nowrap;}
+  .tbtn:first-child{border-right:2px solid var(--border);}
+  .tbtn.active{background:var(--dark);color:#fff;}
+  .pill{background:var(--border);color:var(--muted);border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;transition:all 0.2s;}
+  .tbtn.active .pill{background:var(--green);color:#fff;}
+
+  /* Dropdown partner selector */
+  .drop-wrap{position:relative;flex:1;min-width:220px;max-width:380px;}
+  .drop-wrap select{width:100%;appearance:none;-webkit-appearance:none;background:var(--surface);border:2px solid var(--border);border-radius:10px;padding:10px 38px 10px 14px;font-family:"Plus Jakarta Sans",sans-serif;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;transition:all 0.2s;box-shadow:0 2px 6px rgba(21,38,30,0.06);}
+  .drop-wrap select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(23,173,73,0.1);}
+  .drop-arrow{position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);font-size:12px;}
+
+  /* Add button */
+  .add-btn{padding:10px 20px;background:var(--green);color:#fff;border:none;border-radius:10px;font-family:"Plus Jakarta Sans",sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap;box-shadow:0 2px 8px rgba(23,173,73,0.25);}
+  .add-btn:hover{background:#13973f;box-shadow:0 4px 12px rgba(23,173,73,0.35);}
+  .add-btn:disabled{background:var(--border);color:var(--muted);box-shadow:none;cursor:not-allowed;}
+
+  /* Currency toggle */
+  .cur-wrap{display:flex;border:2px solid var(--border);border-radius:10px;overflow:hidden;margin-left:auto;}
+  .cbtn{padding:10px 14px;background:none;border:none;color:var(--muted);font-family:"Plus Jakarta Sans",sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s;}
+  .cbtn.active{background:var(--green);color:#fff;}
+
+  /* ── SECTION LABEL ── */
+  .slabel{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+  .slabel::after{content:"";flex:1;height:1px;background:var(--border);}
+
+  /* ── CALC PANEL ── */
+  .cpanel{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:22px;margin-bottom:28px;box-shadow:0 2px 8px rgba(21,38,30,0.05);}
+  .citems{display:flex;flex-direction:column;gap:14px;}
+  .citem{background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:15px 18px;}
+  .citem-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+  .citem-name{font-size:14px;font-weight:800;color:var(--dark);}
+  .citem-fml{font-size:11px;color:var(--muted);margin-top:3px;font-style:italic;}
+  .citem-rev{font-size:20px;font-weight:800;color:var(--green);white-space:nowrap;}
+  .cfields{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:10px;}
+  .fgrp label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:4px;}
+  .fgrp input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);font-family:"Plus Jakarta Sans",sans-serif;font-size:13px;font-weight:600;transition:all 0.15s;-moz-appearance:textfield;}
+  .fgrp input::-webkit-outer-spin-button,.fgrp input::-webkit-inner-spin-button{-webkit-appearance:none;}
+  .fgrp input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(23,173,73,0.1);}
+  .fhint{font-size:10px;color:var(--muted);margin-top:3px;}
+  .rmbtn{background:none;border:1.5px solid rgba(193,74,118,0.3);color:var(--cherry);border-radius:20px;padding:4px 11px;font-size:11px;font-weight:700;cursor:pointer;font-family:"Plus Jakarta Sans",sans-serif;transition:all 0.2s;white-space:nowrap;}
+  .rmbtn:hover{background:rgba(193,74,118,0.08);}
+  .empty{text-align:center;padding:40px 20px;color:var(--muted);}
+  .empty-ic{font-size:36px;margin-bottom:10px;opacity:0.2;}
+  .empty-t{font-size:14px;font-weight:700;margin-bottom:4px;}
+  .empty-s{font-size:12px;}
+
+  /* ── BADGES ── */
+  .bdg{display:inline-block;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;}
+  .bdg-res{background:rgba(23,173,73,0.12);color:#0e8a38;}
+  .bdg-ref{background:rgba(2,175,206,0.12);color:#0290aa;}
+  .bdg-mu{background:rgba(224,198,81,0.2);color:#7a6500;}
+  .bdg-com{background:rgba(193,74,118,0.12);color:var(--cherry);}
+
+  @keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .citem{animation:fu 0.2s ease both;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr">
+    <div class="brand">
+      <div class="logo"><img src="data:image/png;base64,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" alt="Sprout Solutions"></div>
+      <div class="hdiv"></div>
+      <div class="brand-label">Partner Revenue Calculator<span>Alliance Products · Revenue Share Estimator</span></div>
+    </div>
+    <div class="hstats">
+      <div class="hstat"><div class="hstat-v" id="hv-sel">0</div><div class="hstat-l">Selected</div></div>
+      <div class="hstat"><div class="hstat-v" id="hv-rev">&#8369;0</div><div class="hstat-l">Est. Revenue</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="phead">
+    <h1>Partner <span>Revenue</span> Calculator</h1>
+    <p>Choose partnership type, select a partner from the dropdown, then enter deal values to estimate revenue share.</p>
+  </div>
+
+  <!-- ── SUMMARY (TOP) ── -->
+  <div class="slabel">Revenue Summary</div>
+  <div class="sumpanel">
+    <div class="sum-top">
+      <div class="sum-title">Estimated Revenue Share</div>
+    </div>
+    <div class="sumcards">
+      <div class="scard"><div class="scard-l">Total Revenue</div><div class="scard-v big" id="st">&#8369;0</div></div>
+      <div class="scard"><div class="scard-l">Reseller Revenue</div><div class="scard-v" id="sr" style="color:#17ad49">&#8369;0</div></div>
+      <div class="scard"><div class="scard-l">Referral Revenue</div><div class="scard-v" id="sf" style="color:#02afce">&#8369;0</div></div>
+      <div class="scard"><div class="scard-l">Partners Selected</div><div class="scard-v" id="sc" style="color:rgba(255,255,255,0.45)">0</div></div>
+    </div>
+    <table class="btbl">
+      <thead><tr><th>Partner</th><th>Type</th><th>Formula</th><th style="text-align:right">Revenue Share</th></tr></thead>
+      <tbody id="btbody"><tr><td colspan="4" class="btbl-empty">No partners selected yet</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- ── CONTROLS ── -->
+  <div class="slabel">Add Partner</div>
+  <div class="controls">
+    <!-- Reseller / Referral toggle -->
+    <div class="type-toggle">
+      <button class="tbtn active" id="btn-res" onclick="setType('Reseller',this)">&#129309; Reseller<span class="pill" id="pill-res">12</span></button>
+      <button class="tbtn" id="btn-ref" onclick="setType('Referral',this)">&#128279; Referral<span class="pill" id="pill-ref">22</span></button>
+    </div>
+    <!-- Partner dropdown -->
+    <div class="drop-wrap">
+      <select id="partner-select" onchange="onSelectChange()">
+        <option value="">&#8212; Select a partner &#8212;</option>
+      </select>
+      <span class="drop-arrow">&#9660;</span>
+    </div>
+    <!-- Add button -->
+    <button class="add-btn" id="add-btn" onclick="addSelected()" disabled>+ Add to Calculator</button>
+    <!-- Currency -->
+    <div class="cur-wrap">
+      <button class="cbtn active" onclick="setCur('PHP',this)">PHP &#8369;</button>
+      <button class="cbtn" onclick="setCur('USD',this)">USD $</button>
+    </div>
+  </div>
+
+  <!-- ── CALCULATOR ── -->
+  <div class="slabel">Revenue Calculator</div>
+  <div class="cpanel">
+    <div class="empty" id="cempty">
+      <div class="empty-ic">&#127807;</div>
+      <div class="empty-t">No partners added yet</div>
+      <div class="empty-s">Select a partner above and click "Add to Calculator"</div>
+    </div>
+    <div class="citems" id="citems"></div>
+  </div>
+</div>
+
+<script>
+const PARTNERS = [
+  // ── RESELLERS ──
+  {id:"perf",name:"Performance+",type:"Reseller",pricingType:"Mark-Up",commissionRate:"Mark-Up",hubspot:"Performance Only / Performance+",
+   formulaText:"(Selling Price − Base Price) × Licenses",
+   fields:[{key:"licenses",label:"Number of Licenses",placeholder:"100",hint:"Total user count"},{key:"sell",label:"Selling Price (USD/user/mo)",placeholder:"2.00",hint:"Your marked-up price"},{key:"base",label:"Base Price (USD/user/mo)",placeholder:"1.50",hint:"1.50 for Performance+, 1.00 for Pro"}],
+   formula:(v,r)=>(+v.sell-+v.base)*(+v.licenses)*r},
+  {id:"jazz",name:"JazzHR",type:"Reseller",pricingType:"Mark-Up",commissionRate:"Mark-Up",hubspot:"JazzHR Pro / Plus / Hero (Annual & Monthly)",
+   formulaText:"Total Contract Value − Base Cost",
+   fields:[{key:"cv",label:"Contract Value (₱)",placeholder:"252000",hint:"Total selling price"},{key:"bc",label:"Base Cost (₱)",placeholder:"180000",hint:"Cost payable to JazzHR"}],
+   formula:(v)=>(+v.cv)-(+v.bc)},
+  {id:"rfly",name:"Referrly",type:"Reseller",pricingType:"Commission",commissionRate:"Custom Mark-Up",hubspot:"Referrly",
+   formulaText:"Contract Value − Base Cost",
+   fields:[{key:"cv",label:"Contract Value (₱)",placeholder:"60000",hint:"Total deal value"},{key:"bc",label:"Base Cost (₱)",placeholder:"40000",hint:"Cost payable to Referrly"}],
+   formula:(v)=>(+v.cv)-(+v.bc)},
+  {id:"pbox",name:"PeopleBox",type:"Reseller",pricingType:"Mark-Up",commissionRate:"Mark-Up",hubspot:"PeopleBox",
+   formulaText:"TCV − [(₱120 × Licenses) − Impl. Fee]",
+   fields:[{key:"lic",label:"Number of Licenses",placeholder:"50",hint:"Total user count"},{key:"tcv",label:"Total Contract Value (₱)",placeholder:"20000",hint:"Annual or monthly TCV"},{key:"impl",label:"Implementation Fee (₱)",placeholder:"5000",hint:"One-time setup fee"}],
+   formula:(v)=>(+v.tcv)-((120*(+v.lic))-(+v.impl))},
+  {id:"disprz",name:"Disprz",type:"Reseller",pricingType:"Commission",commissionRate:"30% Yr1 / 20% Yr2-3",hubspot:"Disprz - LXP Essentials / LMS Essentials",
+   formulaText:"TLC × 30% (Yr1) or × 20% (Yr2-3)",
+   fields:[{key:"tlc",label:"Total License Cost (₱)",placeholder:"100000",hint:"Before tax"},{key:"yr",label:"Contract Year (1/2/3)",placeholder:"1",hint:"1 = 30%, 2 or 3 = 20%"}],
+   formula:(v)=>(+v.tlc)*((+v.yr===1)?0.30:0.20)},
+  {id:"hubstaff",name:"Hubstaff",type:"Reseller",pricingType:"Commission",commissionRate:"Mark-Up",hubspot:"Hubstaff",
+   formulaText:"Selling Price − Base Price",
+   fields:[{key:"sp",label:"Selling Price (₱)",placeholder:"50000",hint:"Your price to client"},{key:"bp",label:"Base Price (₱)",placeholder:"35000",hint:"Cost payable to Hubstaff"}],
+   formula:(v)=>(+v.sp)-(+v.bp)},
+  {id:"manatal",name:"Manatal",type:"Reseller",pricingType:"Commission",commissionRate:"Custom",hubspot:"Manatal",
+   formulaText:"Contract Value − Base Cost",
+   fields:[{key:"cv",label:"Contract Value (₱)",placeholder:"60000",hint:"Total deal value"},{key:"bc",label:"Base Cost (₱)",placeholder:"42000",hint:"Cost payable to Manatal"}],
+   formula:(v)=>(+v.cv)-(+v.bc)},
+  {id:"olivia-res",name:"Olivia",type:"Reseller",pricingType:"Commission",commissionRate:"20%",hubspot:"OliviaXpense Pro / Advanced / Starter",
+   formulaText:"TCV × 20%",
+   fields:[{key:"tcv",label:"Total Contract Value (₱)",placeholder:"100000",hint:"Before tax"}],
+   formula:(v)=>(+v.tcv)*0.20},
+  {id:"infinit",name:"Infinitcare (Dance Fitness / Yoga / Meditation)",type:"Reseller",pricingType:"Commission",commissionRate:"Mark-Up",hubspot:"Infinitcare Dance Fitness / Yoga Sessions",
+   formulaText:"Contract Value − Base Cost",
+   fields:[{key:"cv",label:"Contract Value (₱)",placeholder:"30000",hint:"Total deal value"},{key:"bc",label:"Base Cost (₱)",placeholder:"20000",hint:"Cost payable to Infinitcare"}],
+   formula:(v)=>(+v.cv)-(+v.bc)},
+  {id:"sigma",name:"SIGMA – Muay Thai",type:"Reseller",pricingType:"Commission",commissionRate:"Mark-Up",hubspot:"SIGMA - Muay Thai Online / Onsite",
+   formulaText:"Contract Value − Base Cost",
+   fields:[{key:"cv",label:"Contract Value (₱)",placeholder:"25000",hint:"Total deal value"},{key:"bc",label:"Base Cost (₱)",placeholder:"18000",hint:"Cost payable to SIGMA"}],
+   formula:(v)=>(+v.cv)-(+v.bc)},
+  {id:"mindful",name:"Mindful Moves – Group Yoga",type:"Reseller",pricingType:"Commission",commissionRate:"Mark-Up (pax-based)",hubspot:"Mindful Moves - Group Yoga Onsite / Online",
+   formulaText:"Sessions × Rate(pax) × Markup% (≤99:₱4K | ≤500:₱7K | >500:₱10K)",
+   fields:[{key:"sess",label:"No. of Sessions",placeholder:"4",hint:"Total sessions"},{key:"pax",label:"Participants/Session",placeholder:"150",hint:"≤99:₱4K | ≤500:₱7K | >500:₱10K"},{key:"mu",label:"Mark-up %",placeholder:"20",hint:"Your margin above base price"}],
+   formula:(v)=>{const s=+v.sess,p=+v.pax,m=+v.mu;const r=p<=99?4000:p<=500?7000:10000;return s*r*(m/100);}},
+  {id:"cpps",name:"CPPS – Consultation",type:"Reseller",pricingType:"Commission",commissionRate:"Mark-Up",hubspot:"1-on-1 Psychological / Psychiatric / Mix Consultations",
+   formulaText:"Contract Value − Base Cost",
+   fields:[{key:"cv",label:"Contract Value (₱)",placeholder:"20000",hint:"Total deal value"},{key:"bc",label:"Base Cost (₱)",placeholder:"14000",hint:"Cost payable to CPPS"}],
+   formula:(v)=>(+v.cv)-(+v.bc)},
+  // ── REFERRALS ──
+  {id:"olivia-ref",name:"Olivia",type:"Referral",pricingType:"Commission",commissionRate:"20%",hubspot:"—",
+   formulaText:"TCV × 20%",
+   fields:[{key:"tcv",label:"Total Contract Value (₱)",placeholder:"100000",hint:"Before tax"}],
+   formula:(v)=>(+v.tcv)*0.20},
+  {id:"britana",name:"Britana Solutions",type:"Referral",pricingType:"Commission",commissionRate:"20%",hubspot:"Britana - Premium / Growth / Starter Plan",
+   formulaText:"Subscription Fee × 20%",
+   fields:[{key:"sf",label:"Subscription Fee (₱)",placeholder:"80000",hint:"Excl. impl. fee, before tax"}],
+   formula:(v)=>(+v.sf)*0.20},
+  {id:"smile",name:"Smile Checks",type:"Referral",pricingType:"Commission",commissionRate:"20%",hubspot:"Smile 25 / 100 / 250 / 500 Checks",
+   formulaText:"TCV × 20%",
+   fields:[{key:"tcv",label:"Total Contract Value (₱)",placeholder:"50000",hint:"Before tax"}],
+   formula:(v)=>(+v.tcv)*0.20},
+  {id:"globalo",name:"Globalo",type:"Referral",pricingType:"Commission",commissionRate:"Custom",hubspot:"Globalo - Biometrics",
+   formulaText:"Contract Value − Base Cost",
+   fields:[{key:"cv",label:"Contract Value (₱)",placeholder:"50000",hint:"Total deal value"},{key:"bc",label:"Base Cost (₱)",placeholder:"35000",hint:"Cost payable to Globalo"}],
+   formula:(v)=>(+v.cv)-(+v.bc)},
+  {id:"iot",name:"Internet of Things Philippines",type:"Referral",pricingType:"Commission",commissionRate:"10%",hubspot:"Internet of Things - Biometrics",
+   formulaText:"Total Device Value × 10%",
+   fields:[{key:"tdv",label:"Total Device Value (₱)",placeholder:"100000",hint:"Before tax"}],
+   formula:(v)=>(+v.tdv)*0.10},
+  {id:"maxcore",name:"Maxcore Technologies",type:"Referral",pricingType:"Commission",commissionRate:"10%",hubspot:"Maxcore Technologies - Biometrics",
+   formulaText:"Total Device Value × 10%",
+   fields:[{key:"tdv",label:"Total Device Value (₱)",placeholder:"100000",hint:"Before tax"}],
+   formula:(v)=>(+v.tdv)*0.10},
+  {id:"mysol",name:"MySolutions Inc.",type:"Referral",pricingType:"Commission",commissionRate:"10%",hubspot:"MySolutions Inc - Biometrics",
+   formulaText:"Total Device Value × 10%",
+   fields:[{key:"tdv",label:"Total Device Value (₱)",placeholder:"100000",hint:"Before tax"}],
+   formula:(v)=>(+v.tdv)*0.10},
+  {id:"twala",name:"Twala",type:"Referral",pricingType:"Commission",commissionRate:"20%",hubspot:"Twala - Professional / Business Plus / Business / Volume / API / Enterprise Annual",
+   formulaText:"Subscription Fee × 20%",
+   fields:[{key:"sf",label:"Subscription Fee (₱)",placeholder:"60000",hint:"Excl. impl. fee, before tax"}],
+   formula:(v)=>(+v.sf)*0.20},
+  {id:"techone",name:"TechOne Global – NetSuite",type:"Referral",pricingType:"Commission",commissionRate:"5% of TCV + 10% of Impl.",hubspot:"TechOne - NetSuite",
+   formulaText:"(TCV × 50% × 10%) + (Impl. Fee × 10%)",
+   fields:[{key:"tcv",label:"Total Contract Value (₱)",placeholder:"500000",hint:"Pre-tax TCV"},{key:"impl",label:"Implementation Fee (₱)",placeholder:"50000",hint:"Before tax"}],
+   formula:(v)=>((+v.tcv)*0.50*0.10)+((+v.impl)*0.10)},
+  {id:"beppo",name:"Beppo",type:"Referral",pricingType:"Commission",commissionRate:"10%",hubspot:"Beppo Bookkeeping / Corporate Vat Scale/Grow/Starter",
+   formulaText:"Subscription Fee × 10%",
+   fields:[{key:"sf",label:"Subscription Fee (₱)",placeholder:"80000",hint:"Excl. impl. fee, before tax"}],
+   formula:(v)=>(+v.sf)*0.10},
+  {id:"emerge",name:"Emerge",type:"Referral",pricingType:"Commission",commissionRate:"15%",hubspot:"—",
+   formulaText:"TCV × 15%",
+   fields:[{key:"tcv",label:"Total Contract Value (₱)",placeholder:"100000",hint:"Before tax"}],
+   formula:(v)=>(+v.tcv)*0.15},
+  {id:"juan",name:"Juan",type:"Referral",pricingType:"Commission",commissionRate:"30%",hubspot:"Juan Accounting",
+   formulaText:"Subscription Fee × 30%",
+   fields:[{key:"sf",label:"Subscription Fee (₱)",placeholder:"50000",hint:"Excl. impl. fee, before tax"}],
+   formula:(v)=>(+v.sf)*0.30},
+  {id:"xoxo",name:"Xoxoday",type:"Referral",pricingType:"Commission",commissionRate:"30%",hubspot:"Xoxoday / [TH] Xoxoday",
+   formulaText:"Subscription Fee × 30%",
+   fields:[{key:"sf",label:"Subscription Fee (₱)",placeholder:"50000",hint:"Excl. impl. fee, before tax"}],
+   formula:(v)=>(+v.sf)*0.30},
+  {id:"medicard",name:"Medicard",type:"Referral",pricingType:"Commission",commissionRate:"7.5%",hubspot:"Medicard - RxER Card / HealthPlus Card",
+   formulaText:"Subscription Fee × 7.5%",
+   fields:[{key:"sf",label:"Subscription Fee (₱)",placeholder:"100000",hint:"Excl. impl. fee, before tax"}],
+   formula:(v)=>(+v.sf)*0.075},
+  {id:"fynlo",name:"Fynlo",type:"Referral",pricingType:"Commission",commissionRate:"25%",hubspot:"Fynlo - (HC < 20) / (HC < 10)",
+   formulaText:"TCV × 25%",
+   fields:[{key:"tcv",label:"Total Contract Value (₱)",placeholder:"80000",hint:"Before tax"}],
+   formula:(v)=>(+v.tcv)*0.25},
+  {id:"advclub",name:"Advantage Club",type:"Referral",pricingType:"Mark-Up",commissionRate:"Mark-Up",hubspot:"Advantage Club",
+   formulaText:"Contract Value − Base Cost",
+   fields:[{key:"cv",label:"Contract Value (₱)",placeholder:"50000",hint:"Total deal value"},{key:"bc",label:"Base Cost (₱)",placeholder:"35000",hint:"Cost payable to Advantage Club"}],
+   formula:(v)=>(+v.cv)-(+v.bc)},
+  {id:"qlo",name:"Quick Loans Online (QLO)",type:"Referral",pricingType:"Commission",commissionRate:"Custom",hubspot:"QLO Business Loan",
+   formulaText:"Contract Value − Base Cost",
+   fields:[{key:"cv",label:"Contract Value (₱)",placeholder:"50000",hint:"Total deal value"},{key:"bc",label:"Base Cost (₱)",placeholder:"35000",hint:"Cost payable to QLO"}],
+   formula:(v)=>(+v.cv)-(+v.bc)},
+  {id:"tability",name:"Tability",type:"Referral",pricingType:"Commission",commissionRate:"Custom",hubspot:"Tability - Premium / Plus / Basic",
+   formulaText:"Contract Value − Base Cost",
+   fields:[{key:"cv",label:"Contract Value (₱)",placeholder:"50000",hint:"Total deal value"},{key:"bc",label:"Base Cost (₱)",placeholder:"35000",hint:"Cost payable to Tability"}],
+   formula:(v)=>(+v.cv)-(+v.bc)},
+  {id:"cast",name:"Cast",type:"Referral",pricingType:"Mark-Up",commissionRate:"Mark-Up",hubspot:"Cast",
+   formulaText:"Contract Value − Base Cost",
+   fields:[{key:"cv",label:"Contract Value (₱)",placeholder:"50000",hint:"Total deal value"},{key:"bc",label:"Base Cost (₱)",placeholder:"35000",hint:"Cost payable to Cast"}],
+   formula:(v)=>(+v.cv)-(+v.bc)},
+  {id:"cashko",name:"CashKo",type:"Referral",pricingType:"Commission",commissionRate:"Custom",hubspot:"CashKo HMO Insurance",
+   formulaText:"Contract Value − Base Cost",
+   fields:[{key:"cv",label:"Contract Value (₱)",placeholder:"50000",hint:"Total deal value"},{key:"bc",label:"Base Cost (₱)",placeholder:"35000",hint:"Cost payable to CashKo"}],
+   formula:(v)=>(+v.cv)-(+v.bc)},
+  {id:"hive",name:"Hive Health",type:"Referral",pricingType:"Commission",commissionRate:"Custom",hubspot:"Hive Health",
+   formulaText:"Contract Value − Base Cost",
+   fields:[{key:"cv",label:"Contract Value (₱)",placeholder:"50000",hint:"Total deal value"},{key:"bc",label:"Base Cost (₱)",placeholder:"35000",hint:"Cost payable to Hive Health"}],
+   formula:(v)=>(+v.cv)-(+v.bc)},
+  {id:"digibeacon",name:"DigiBeacon",type:"Referral",pricingType:"Commission",commissionRate:"10%",hubspot:"DigiBeacon - ClickUp",
+   formulaText:"Subscription Fee × 10%",
+   fields:[{key:"sf",label:"Subscription Fee (₱)",placeholder:"60000",hint:"Excl. impl. fee, before tax"}],
+   formula:(v)=>(+v.sf)*0.10},
+];
+
+// ── STATE ──
+let activeType = "Reseller";
+let selected   = new Set();   // set of partner ids currently in calc
+let values     = {};          // pid -> {fieldKey: value}
+let currency   = "PHP";
+const PHP_RATE = 56;
+
+// ── FORMAT ──
+function fmt(v){
+  if(currency==="USD") return "$"+((v/PHP_RATE).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}));
+  return "₱"+(v.toLocaleString("en-PH",{minimumFractionDigits:2,maximumFractionDigits:2}));
+}
+function fmtS(v){
+  if(currency==="USD"){const u=v/PHP_RATE;return u>=1000?"$"+(u/1000).toFixed(1)+"K":"$"+u.toFixed(0);}
+  return v>=1000?"₱"+(v/1000).toFixed(1)+"K":"₱"+v.toFixed(0);
+}
+function calc(p,v){
+  try{const r=p.formula(v||{},PHP_RATE);return(!isNaN(r)&&isFinite(r)&&r>=0)?r:0;}catch{return 0;}
+}
+
+// ── TOGGLE TYPE ──
+function setType(t){
+  activeType = t;
+  document.getElementById("btn-res").classList.toggle("active", t==="Reseller");
+  document.getElementById("btn-ref").classList.toggle("active", t==="Referral");
+  populateDropdown();
+  // reset dropdown selection
+  document.getElementById("partner-select").value = "";
+  document.getElementById("add-btn").disabled = true;
+}
+
+// ── DROPDOWN ──
+function populateDropdown(){
+  const sel = document.getElementById("partner-select");
+  const available = PARTNERS.filter(p => p.type === activeType && !selected.has(p.id));
+  sel.innerHTML = '<option value="">— Select a partner —</option>' +
+    available.map(p => `<option value="${p.id}">${p.name} (${p.commissionRate})</option>`).join("");
+}
+
+function onSelectChange(){
+  const v = document.getElementById("partner-select").value;
+  document.getElementById("add-btn").disabled = !v;
+}
+
+function addSelected(){
+  const sel = document.getElementById("partner-select");
+  const pid = sel.value;
+  if(!pid) return;
+  selected.add(pid);
+  values[pid] = {};
+  populateDropdown();
+  sel.value = "";
+  document.getElementById("add-btn").disabled = true;
+  renderCalc();
+  updateSummary();
+}
+
+function removePartner(pid){
+  selected.delete(pid);
+  delete values[pid];
+  populateDropdown(); // re-add to dropdown
+  renderCalc();
+  updateSummary();
+}
+
+// ── CALC RENDER ──
+function renderCalc(){
+  const sel = PARTNERS.filter(p => selected.has(p.id));
+  const empty = document.getElementById("cempty");
+  const items = document.getElementById("citems");
+  if(!sel.length){ empty.style.display="block"; items.innerHTML=""; return; }
+  empty.style.display = "none";
+  items.innerHTML = sel.map(p => {
+    const v = values[p.id]||{};
+    const r = calc(p,v);
+    const tb = p.type==="Reseller"?"bdg-res":"bdg-ref";
+    const ptb = p.pricingType==="Mark-Up"?"bdg-mu":"bdg-com";
+    return `<div class="citem" id="ci-${p.id}">
+      <div class="citem-top">
+        <div>
+          <div class="citem-name">${p.name}
+            <span class="bdg ${tb}" style="margin-left:7px;font-size:9px">${p.type}</span>
+            <span class="bdg ${ptb}" style="margin-left:4px;font-size:9px">${p.pricingType}</span>
+          </div>
+          <div class="citem-fml">${p.formulaText}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="citem-rev" id="rv-${p.id}">${fmt(r)}</div>
+          <button class="rmbtn" onclick="removePartner('${p.id}')">Remove</button>
+        </div>
+      </div>
+      <div class="cfields">${p.fields.map(f=>`
+        <div class="fgrp">
+          <label>${f.label}</label>
+          <input type="number" step="any" value="${v[f.key]||""}" placeholder="${f.placeholder}" oninput="updVal('${p.id}','${f.key}',this.value)">
+          <div class="fhint">${f.hint}</div>
+        </div>`).join("")}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ── UPDATE VALUE ──
+function updVal(pid,key,val){
+  if(!values[pid]) values[pid]={};
+  values[pid][key] = parseFloat(val)||0;
+  const p = PARTNERS.find(x=>x.id===pid);
+  if(p){
+    const r = calc(p,values[pid]);
+    const el = document.getElementById("rv-"+pid);
+    if(el) el.textContent = fmt(r);
+  }
+  updateSummary();
+}
+
+// ── SUMMARY ──
+function updateSummary(){
+  const sel = PARTNERS.filter(p=>selected.has(p.id));
+  let tot=0, res=0, ref=0;
+  sel.forEach(p=>{const r=calc(p,values[p.id]||{});tot+=r;p.type==="Reseller"?res+=r:ref+=r;});
+  document.getElementById("st").textContent = fmt(tot);
+  document.getElementById("sr").textContent = fmt(res);
+  document.getElementById("sf").textContent = fmt(ref);
+  document.getElementById("sc").textContent = sel.length;
+  document.getElementById("hv-sel").textContent = sel.length;
+  document.getElementById("hv-rev").textContent = fmtS(tot);
+  const tb = document.getElementById("btbody");
+  if(!sel.length){ tb.innerHTML='<tr><td colspan="4" class="btbl-empty">No partners selected yet</td></tr>'; return; }
+  tb.innerHTML = sel.map(p=>{
+    const r=calc(p,values[p.id]||{});
+    const pct=tot>0?((r/tot)*100).toFixed(1):"0.0";
+    const tb2=p.type==="Reseller"?"bdg-res":"bdg-ref";
+    return `<tr><td><strong>${p.name}</strong></td><td><span class="bdg ${tb2}" style="font-size:9px">${p.type}</span></td><td style="font-style:italic;color:rgba(255,255,255,0.45);font-size:11px">${p.formulaText}</td><td style="text-align:right;font-weight:700;color:#17ad49">${fmt(r)} <span style="color:rgba(255,255,255,0.3);font-size:10px">(${pct}%)</span></td></tr>`;
+  }).join("") + `<tr class="trow"><td colspan="3">Total Estimated Revenue Share</td><td style="text-align:right">${fmt(tot)}</td></tr>`;
+}
+
+// ── SET CURRENCY ──
+function setCur(c,btn){
+  currency = c;
+  document.querySelectorAll(".cbtn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  // re-render revenue values without re-building inputs
+  PARTNERS.filter(p=>selected.has(p.id)).forEach(p=>{
+    const el=document.getElementById("rv-"+p.id);
+    if(el) el.textContent=fmt(calc(p,values[p.id]||{}));
+  });
+  updateSummary();
+}
+
+// ── INIT ──
+document.getElementById("pill-res").textContent = PARTNERS.filter(p=>p.type==="Reseller").length;
+document.getElementById("pill-ref").textContent = PARTNERS.filter(p=>p.type==="Referral").length;
+populateDropdown();
+updateSummary();
+</script>
+</body>
+</html>
