@@ -38,24 +38,24 @@
   .phead p{font-size:13px;color:var(--muted);margin-top:5px;}
 
   /* ── SUMMARY PANEL (TOP) ── */
-  .sumpanel{background:var(--dark);border-radius:16px;padding:26px 28px;margin-bottom:28px;position:relative;overflow:hidden;}
-  .sumpanel::before{content:"";position:absolute;top:-70px;right:-70px;width:260px;height:260px;background:rgba(23,173,73,0.14);border-radius:50%;}
-  .sumpanel::after{content:"";position:absolute;bottom:-50px;left:-50px;width:180px;height:180px;background:rgba(2,175,206,0.09);border-radius:50%;}
+  .sumpanel{background:var(--surface);border:2px solid var(--border);border-radius:16px;padding:26px 28px;margin-bottom:28px;position:relative;overflow:hidden;box-shadow:0 4px 16px rgba(21,38,30,0.08);}
+  .sumpanel::before{content:"";position:absolute;top:-70px;right:-70px;width:260px;height:260px;background:rgba(23,173,73,0.07);border-radius:50%;}
+  .sumpanel::after{content:"";position:absolute;bottom:-50px;left:-50px;width:180px;height:180px;background:rgba(2,175,206,0.05);border-radius:50%;}
   .sum-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px;position:relative;z-index:1;}
-  .sum-title{font-size:15px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px;}
+  .sum-title{font-size:15px;font-weight:800;color:var(--dark);display:flex;align-items:center;gap:8px;}
   .sum-title::before{content:"◆";color:var(--lemon);font-size:11px;}
   .sumcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:18px;position:relative;z-index:1;}
-  .scard{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.09);border-radius:10px;padding:12px 14px;}
-  .scard-l{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.4);font-weight:700;margin-bottom:4px;}
-  .scard-v{font-size:19px;font-weight:800;color:#fff;}
-  .scard-v.big{font-size:24px;color:var(--lemon);}
+  .scard{background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;}
+  .scard-l{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-weight:700;margin-bottom:4px;}
+  .scard-v{font-size:19px;font-weight:800;color:var(--dark);}
+  .scard-v.big{font-size:24px;color:var(--green);}
   .btbl{width:100%;border-collapse:collapse;font-size:12px;position:relative;z-index:1;}
-  .btbl th{text-align:left;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.08em;font-size:9px;font-weight:700;padding:6px 10px;border-bottom:1px solid rgba(255,255,255,0.09);}
-  .btbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.04);color:rgba(255,255,255,0.8);font-size:12px;}
+  .btbl th{text-align:left;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-size:9px;font-weight:700;padding:6px 10px;border-bottom:1.5px solid var(--border);}
+  .btbl td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);font-size:12px;}
   .btbl tr:last-child td{border-bottom:none;}
-  .btbl tr:hover td{background:rgba(255,255,255,0.03);}
-  .btbl .trow td{border-top:1px solid rgba(255,255,255,0.14);padding-top:10px;font-weight:800;font-size:13px;color:var(--lemon);}
-  .btbl-empty{color:rgba(255,255,255,0.25);text-align:center;padding:16px;font-size:12px;}
+  .btbl tr:hover td{background:var(--surface2);}
+  .btbl .trow td{border-top:2px solid var(--border);padding-top:10px;font-weight:800;font-size:13px;color:var(--dark);}
+  .btbl-empty{color:var(--muted);text-align:center;padding:16px;font-size:12px;}
 
   /* ── CONTROLS ROW ── */
   .controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px;}
@@ -79,10 +79,7 @@
   .add-btn:hover{background:#13973f;box-shadow:0 4px 12px rgba(23,173,73,0.35);}
   .add-btn:disabled{background:var(--border);color:var(--muted);box-shadow:none;cursor:not-allowed;}
 
-  /* Currency toggle */
-  .cur-wrap{display:flex;border:2px solid var(--border);border-radius:10px;overflow:hidden;margin-left:auto;}
-  .cbtn{padding:10px 14px;background:none;border:none;color:var(--muted);font-family:"Plus Jakarta Sans",sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s;}
-  .cbtn.active{background:var(--green);color:#fff;}
+
 
   /* ── SECTION LABEL ── */
   .slabel{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
@@ -131,7 +128,7 @@
     </div>
     <div class="hstats">
       <div class="hstat"><div class="hstat-v" id="hv-sel">0</div><div class="hstat-l">Selected</div></div>
-      <div class="hstat"><div class="hstat-v" id="hv-rev">&#8369;0</div><div class="hstat-l">Est. Revenue</div></div>
+      <div class="hstat"><div class="hstat-v" id="hv-rev">₱0</div><div class="hstat-l">Est. Revenue</div></div>
     </div>
   </div>
 </header>
@@ -149,10 +146,10 @@
       <div class="sum-title">Estimated Revenue Share</div>
     </div>
     <div class="sumcards">
-      <div class="scard"><div class="scard-l">Total Revenue</div><div class="scard-v big" id="st">&#8369;0</div></div>
-      <div class="scard"><div class="scard-l">Reseller Revenue</div><div class="scard-v" id="sr" style="color:#17ad49">&#8369;0</div></div>
-      <div class="scard"><div class="scard-l">Referral Revenue</div><div class="scard-v" id="sf" style="color:#02afce">&#8369;0</div></div>
-      <div class="scard"><div class="scard-l">Partners Selected</div><div class="scard-v" id="sc" style="color:rgba(255,255,255,0.45)">0</div></div>
+      <div class="scard"><div class="scard-l">Total Revenue</div><div class="scard-v big" id="st">₱0.00</div></div>
+      <div class="scard"><div class="scard-l">Reseller Revenue</div><div class="scard-v" id="sr" style="color:#17ad49">₱0.00</div></div>
+      <div class="scard"><div class="scard-l">Referral Revenue</div><div class="scard-v" id="sf" style="color:#02afce">₱0.00</div></div>
+      <div class="scard"><div class="scard-l">Partners Selected</div><div class="scard-v" id="sc" style="color:var(--dark)">0</div></div>
     </div>
     <table class="btbl">
       <thead><tr><th>Partner</th><th>Type</th><th>Formula</th><th style="text-align:right">Revenue Share</th></tr></thead>
@@ -177,11 +174,7 @@
     </div>
     <!-- Add button -->
     <button class="add-btn" id="add-btn" onclick="addSelected()" disabled>+ Add to Calculator</button>
-    <!-- Currency -->
-    <div class="cur-wrap">
-      <button class="cbtn active" onclick="setCur('PHP',this)">PHP &#8369;</button>
-      <button class="cbtn" onclick="setCur('USD',this)">USD $</button>
-    </div>
+
   </div>
 
   <!-- ── CALCULATOR ── -->
@@ -201,8 +194,8 @@ const PARTNERS = [
   // ── RESELLERS ──
   {id:"perf",name:"Performance+",type:"Reseller",pricingType:"Mark-Up",commissionRate:"Mark-Up",hubspot:"Performance Only / Performance+",
    formulaText:"(Selling Price − Base Price) × Licenses",
-   fields:[{key:"licenses",label:"Number of Licenses",placeholder:"100",hint:"Total user count"},{key:"sell",label:"Selling Price (USD/user/mo)",placeholder:"2.00",hint:"Your marked-up price"},{key:"base",label:"Base Price (USD/user/mo)",placeholder:"1.50",hint:"1.50 for Performance+, 1.00 for Pro"}],
-   formula:(v,r)=>(+v.sell-+v.base)*(+v.licenses)*r},
+   fields:[{key:"licenses",label:"Number of Licenses",placeholder:"100",hint:"Total user count"},{key:"sell",label:"Selling Price (₱/user/mo)",placeholder:"112",hint:"Your marked-up price in ₱"},{key:"base",label:"Base Price (₱/user/mo)",placeholder:"90",hint:"₱90 for Performance+, ₱60 for Pro only"}],
+   formula:(v)=>(+v.sell-+v.base)*(+v.licenses)},
   {id:"jazz",name:"JazzHR",type:"Reseller",pricingType:"Mark-Up",commissionRate:"Mark-Up",hubspot:"JazzHR Pro / Plus / Hero (Annual & Monthly)",
    formulaText:"Total Contract Value − Base Cost",
    fields:[{key:"cv",label:"Contract Value (₱)",placeholder:"252000",hint:"Total selling price"},{key:"bc",label:"Base Cost (₱)",placeholder:"180000",hint:"Cost payable to JazzHR"}],
@@ -212,9 +205,17 @@ const PARTNERS = [
    fields:[{key:"cv",label:"Contract Value (₱)",placeholder:"60000",hint:"Total deal value"},{key:"bc",label:"Base Cost (₱)",placeholder:"40000",hint:"Cost payable to Referrly"}],
    formula:(v)=>(+v.cv)-(+v.bc)},
   {id:"pbox",name:"PeopleBox",type:"Reseller",pricingType:"Mark-Up",commissionRate:"Mark-Up",hubspot:"PeopleBox",
-   formulaText:"TCV − [(₱120 × Licenses) − Impl. Fee]",
-   fields:[{key:"lic",label:"Number of Licenses",placeholder:"50",hint:"Total user count"},{key:"tcv",label:"Total Contract Value (₱)",placeholder:"20000",hint:"Annual or monthly TCV"},{key:"impl",label:"Implementation Fee (₱)",placeholder:"5000",hint:"One-time setup fee"}],
-   formula:(v)=>(+v.tcv)-((120*(+v.lic))-(+v.impl))},
+   formulaText:"TCV − [(₱120 × Users × 12) + Impl. Fee] | TCV = (₱300 × Users × 12) + Impl. Fee",
+   fields:[
+     {key:"users",label:"Number of Users",placeholder:"150",hint:"Total user/license count"},
+     {key:"impl",label:"Implementation Fee (₱)",placeholder:"84000",hint:"One-time implementation fee"}
+   ],
+   formula:(v)=>{
+     const u=+v.users||0, impl=+v.impl||0;
+     const tcv=(300*u*12)+impl;
+     const cost=(120*u*12)+impl;
+     return tcv-cost;
+   }},
   {id:"disprz",name:"Disprz",type:"Reseller",pricingType:"Commission",commissionRate:"30% Yr1 / 20% Yr2-3",hubspot:"Disprz - LXP Essentials / LMS Essentials",
    formulaText:"TLC × 30% (Yr1) or × 20% (Yr2-3)",
    fields:[{key:"tlc",label:"Total License Cost (₱)",placeholder:"100000",hint:"Before tax"},{key:"yr",label:"Contract Year (1/2/3)",placeholder:"1",hint:"1 = 30%, 2 or 3 = 20%"}],
@@ -342,20 +343,17 @@ const PARTNERS = [
 let activeType = "Reseller";
 let selected   = new Set();   // set of partner ids currently in calc
 let values     = {};          // pid -> {fieldKey: value}
-let currency   = "PHP";
-const PHP_RATE = 56;
+
 
 // ── FORMAT ──
 function fmt(v){
-  if(currency==="USD") return "$"+((v/PHP_RATE).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}));
   return "₱"+(v.toLocaleString("en-PH",{minimumFractionDigits:2,maximumFractionDigits:2}));
 }
 function fmtS(v){
-  if(currency==="USD"){const u=v/PHP_RATE;return u>=1000?"$"+(u/1000).toFixed(1)+"K":"$"+u.toFixed(0);}
   return v>=1000?"₱"+(v/1000).toFixed(1)+"K":"₱"+v.toFixed(0);
 }
 function calc(p,v){
-  try{const r=p.formula(v||{},PHP_RATE);return(!isNaN(r)&&isFinite(r)&&r>=0)?r:0;}catch{return 0;}
+  try{const r=p.formula(v||{});return(!isNaN(r)&&isFinite(r)&&r>=0)?r:0;}catch{return 0;}
 }
 
 // ── TOGGLE TYPE ──
@@ -470,22 +468,11 @@ function updateSummary(){
     const r=calc(p,values[p.id]||{});
     const pct=tot>0?((r/tot)*100).toFixed(1):"0.0";
     const tb2=p.type==="Reseller"?"bdg-res":"bdg-ref";
-    return `<tr><td><strong>${p.name}</strong></td><td><span class="bdg ${tb2}" style="font-size:9px">${p.type}</span></td><td style="font-style:italic;color:rgba(255,255,255,0.45);font-size:11px">${p.formulaText}</td><td style="text-align:right;font-weight:700;color:#17ad49">${fmt(r)} <span style="color:rgba(255,255,255,0.3);font-size:10px">(${pct}%)</span></td></tr>`;
-  }).join("") + `<tr class="trow"><td colspan="3">Total Estimated Revenue Share</td><td style="text-align:right">${fmt(tot)}</td></tr>`;
+    return `<tr><td><strong>${p.name}</strong></td><td><span class="bdg ${tb2}" style="font-size:9px">${p.type}</span></td><td style="font-style:italic;color:var(--muted);font-size:11px">${p.formulaText}</td><td style="text-align:right;font-weight:700;color:#17ad49">${fmt(r)} <span style="color:var(--muted);font-size:10px">(${pct}%)</span></td></tr>`;
+  }).join("") + `<tr class="trow"><td colspan="3">Total Estimated Revenue Share</td><td style="text-align:right;color:var(--green)">${fmt(tot)}</td></tr>`;
 }
 
-// ── SET CURRENCY ──
-function setCur(c,btn){
-  currency = c;
-  document.querySelectorAll(".cbtn").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-  // re-render revenue values without re-building inputs
-  PARTNERS.filter(p=>selected.has(p.id)).forEach(p=>{
-    const el=document.getElementById("rv-"+p.id);
-    if(el) el.textContent=fmt(calc(p,values[p.id]||{}));
-  });
-  updateSummary();
-}
+
 
 // ── INIT ──
 document.getElementById("pill-res").textContent = PARTNERS.filter(p=>p.type==="Reseller").length;
