@@ -273,17 +273,17 @@ const PARTNERS = [
      return (up-bc)*qty;
    }},
 
-  {id:"manatal",name:"Manatal",type:"Reseller",pricingType:"Commission",commissionRate:"Custom",hubspot:"Manatal",
-   formulaText:"Contract Value − Base Cost",
+  {id:"manatal",name:"Manatal",type:"Reseller",pricingType:"Commission",commissionRate:"20%",hubspot:"Manatal",
+   formulaText:"Unit Price × Quantity × Months × 20%",
    lineItems:[
      {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"1000",hint:"Your selling price per user",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License"]},
      {key:"qty",label:"Quantity (Users)",placeholder:"10",hint:"Number of users",type:"number"},
-     {key:"baseCost",label:"Base Cost (₱)",placeholder:"42000",hint:"Total cost payable to Manatal",type:"number"},
+     {key:"months",label:"Months",placeholder:"12",hint:"Contract duration in months",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, bc=+v.baseCost||0;
-     return (up*qty)-bc;
+     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||0;
+     return (up*qty*mo)*0.20;
    }},
 
   {id:"olivia-res",name:"Olivia",type:"Reseller",pricingType:"Commission",commissionRate:"20%",hubspot:"OliviaXpense Pro / Advanced / Starter",
@@ -391,17 +391,16 @@ const PARTNERS = [
      return (up*qty)*0.20;
    }},
 
-  {id:"globalo",name:"Globalo",type:"Referral",pricingType:"Commission",commissionRate:"Custom",hubspot:"Globalo - Biometrics",
-   formulaText:"Contract Value − Base Cost",
+  {id:"globalo",name:"Globalo",type:"Referral",pricingType:"Commission",commissionRate:"10%",hubspot:"Globalo - Biometrics",
+   formulaText:"Unit Price × Quantity × 10%",
    lineItems:[
      {key:"unitPrice",label:"Unit Price (₱/device)",placeholder:"5000",hint:"Selling price per device",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per Tiering"]},
      {key:"qty",label:"Quantity (Devices)",placeholder:"10",hint:"Number of devices",type:"number"},
-     {key:"baseCost",label:"Base Cost (₱)",placeholder:"35000",hint:"Cost payable to Globalo",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, bc=+v.baseCost||0;
-     return (up*qty)-bc;
+     const up=+v.unitPrice||0, qty=+v.qty||0;
+     return (up*qty)*0.10;
    }},
 
   {id:"iot",name:"Internet of Things Philippines",type:"Referral",pricingType:"Commission",commissionRate:"10%",hubspot:"Internet of Things - Biometrics",
@@ -469,11 +468,11 @@ const PARTNERS = [
    }},
 
   {id:"beppo",name:"Beppo",type:"Referral",pricingType:"Commission",commissionRate:"10%",hubspot:"Beppo Bookkeeping / Corporate Vat Scale/Grow/Starter",
-   formulaText:"Subscription Fee × 10%",
+   formulaText:"Unit Price × Quantity × 10%",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/mo)",placeholder:"5000",hint:"Monthly subscription price",type:"number"},
-     {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per Tiering"]},
-     {key:"qty",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱)",placeholder:"5000",hint:"Subscription price",type:"number"},
+     {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License","Per Tiering"]},
+     {key:"qty",label:"Quantity",placeholder:"12",hint:"Number of users/licenses",type:"number"},
    ],
    formula:(v)=>{
      const up=+v.unitPrice||0, qty=+v.qty||0;
