@@ -207,16 +207,16 @@ const PARTNERS = [
    }},
 
   {id:"jazz",name:"JazzHR",type:"Reseller",pricingType:"Mark-Up",commissionRate:"Mark-Up",hubspot:"JazzHR Pro / Plus / Hero (Annual & Monthly) / Recruit / Recruit+",
-   formulaText:"Contract Value − Base Cost",
+   formulaText:"(Unit Price − Base Cost) × Months",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/mo)",placeholder:"21000",hint:"Monthly selling price to client",type:"number"},
-     {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per Tiering"]},
-     {key:"qty",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
-     {key:"baseCost",label:"Base Cost (₱)",placeholder:"180000",hint:"Total cost payable to JazzHR",type:"number"},
+     {key:"tier",label:"Tier",hint:"Select JazzHR tier",type:"select",options:["Plus (₱21,000/mo)","Pro (₱29,940/mo)"]},
+     {key:"unitPrice",label:"Unit Price (₱/mo)",placeholder:"25000",hint:"Monthly selling price to client",type:"number"},
+     {key:"qty",label:"Months",placeholder:"12",hint:"Contract duration in months",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, bc=+v.baseCost||0;
-     return (up*qty)-bc;
+     const up=+v.unitPrice||0, qty=+v.qty||0;
+     const base=v.tier&&v.tier.includes("Pro")?29940:21000;
+     return (up-base)*qty;
    }},
 
   {id:"rfly",name:"Referrly",type:"Reseller",pricingType:"Commission",commissionRate:"Custom Mark-Up",hubspot:"Referrly",
