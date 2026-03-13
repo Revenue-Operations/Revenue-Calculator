@@ -286,6 +286,19 @@ const PARTNERS = [
      return (up*qty*mo)*0.20;
    }},
 
+    {id:"teamtailor",name:"Team Tailor",type:"Reseller",pricingType:"Commission",commissionRate:"20%",hubspot:"Manatal",
+   formulaText:"Unit Price × Quantity × Months × 20%",
+   lineItems:[
+     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"1000",hint:"Your selling price per user",type:"number"},
+     {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License"]},
+     {key:"qty",label:"Quantity (Users)",placeholder:"10",hint:"Number of users",type:"number"},
+     {key:"months",label:"Months",placeholder:"12",hint:"Contract duration in months",type:"number"},
+   ],
+   formula:(v)=>{
+     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||0;
+     return (up*qty*mo)*0.20;
+   }},
+
   {id:"olivia-res",name:"Olivia",type:"Reseller",pricingType:"Commission",commissionRate:"20%",hubspot:"OliviaXpense Pro / Advanced / Starter",
    formulaText:"TCV × 20%",
    lineItems:[
