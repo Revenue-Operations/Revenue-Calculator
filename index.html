@@ -47,8 +47,8 @@
   .sumcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:18px;position:relative;z-index:1;}
   .scard{background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;}
   .scard-l{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-weight:700;margin-bottom:4px;}
-  .scard-v{font-size:19px;font-weight:800;color:var(--dark);}
-  .scard-v.big{font-size:24px;color:var(--green);}
+  .scard-v{font-size:16px;font-weight:800;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .scard-v.big{font-size:18px;color:var(--green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .btbl{width:100%;border-collapse:collapse;font-size:12px;position:relative;z-index:1;}
   .btbl th{text-align:left;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-size:9px;font-weight:700;padding:6px 10px;border-bottom:1.5px solid var(--border);}
   .btbl td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);font-size:12px;}
@@ -115,6 +115,21 @@
 
   @keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
   .citem{animation:fu 0.2s ease both;}
+
+  /* ── HUBSPOT PREVIEW ── */
+  .hslabel{font-size:.65rem;font-weight:700;letter-spacing:.08em;color:var(--green);text-transform:uppercase;margin-bottom:.4rem}
+  .hspanel{background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:1.2rem 1.4rem;margin-bottom:1.5rem;overflow-x:auto}
+  .hspanel-empty{text-align:center;color:#94a3b8;font-size:.85rem;padding:1rem 0}
+  .hs-table{width:100%;border-collapse:collapse;font-size:.75rem;min-width:900px}
+  .hs-table thead tr{background:#f8fafc;border-bottom:2px solid #e2e8f0}
+  .hs-table thead th{padding:.5rem .7rem;text-align:left;font-weight:700;color:#475569;white-space:nowrap;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em}
+  .hs-table tbody tr{border-bottom:1px solid #f1f5f9;transition:background .15s}
+  .hs-table tbody tr:hover{background:#f8fafc}
+  .hs-table tbody td{padding:.55rem .7rem;color:#1e293b;vertical-align:middle}
+  .hs-table tbody td.rev{font-weight:700;color:var(--green)}
+  .hs-badge{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.68rem;font-weight:600}
+  .hs-badge.reseller{background:#dcfce7;color:#166534}
+  .hs-badge.referral{background:#dbeafe;color:#1e40af}
 </style>
 </head>
 <body>
@@ -137,6 +152,29 @@
   <div class="phead">
     <h1>Partner <span>Revenue</span> Calculator</h1>
     <p>Choose partnership type, select a partner from the dropdown, then enter deal values to estimate revenue share.</p>
+  </div>
+
+  <!-- ── HUBSPOT LINE ITEM PREVIEW ── -->
+  <div class="hslabel">HubSpot Line Item Preview</div>
+  <div class="hspanel" id="hspanel">
+    <div class="hspanel-empty" id="hs-empty">No partners added yet — line items will appear here once you add a partner.</div>
+    <table class="hs-table" id="hs-table" style="display:none">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Price Type</th>
+          <th>Billing Freq.</th>
+          <th>Term</th>
+          <th>Qty</th>
+          <th>Unit Price</th>
+          <th>TCV</th>
+          <th>Revenue Share</th>
+        </tr>
+      </thead>
+      <tbody id="hs-tbody"></tbody>
+    </table>
   </div>
 
   <!-- ── SUMMARY (TOP) ── -->
@@ -195,7 +233,7 @@ const PARTNERS = [
   {id:"perf",name:"Performance+",type:"Reseller",pricingType:"Mark-Up",commissionRate:"Mark-Up",hubspot:"Performance Only / Performance+",
    formulaText:"(Unit Price − Base ₱90/₱60) × Quantity",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"120",hint:"Your selling price per user/mo",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"120",hint:"Your selling price per user/mo",type:"number"},
      {key:"priceType",label:"Price Type",hint:"How pricing is structured",type:"select",options:["Per User","Per License"]},
      {key:"qty",label:"Quantity (Users)",placeholder:"150",hint:"Number of users/licenses",type:"number"},
      {key:"baseType",label:"Base Plan",hint:"Select plan to set base price",type:"select",options:["Performance+ with TLC (₱90)","Performance Pro only (₱60)"]},
@@ -207,16 +245,16 @@ const PARTNERS = [
    }},
 
   {id:"jazz",name:"JazzHR",type:"Reseller",pricingType:"Mark-Up",commissionRate:"Mark-Up",hubspot:"JazzHR Pro / Plus / Hero (Annual & Monthly) / Recruit / Recruit+",
-   formulaText:"(Unit Price − Base Cost) × Months",
+   formulaText:"(Unit Price − Base Cost) × Qty × Term",
    lineItems:[
      {key:"tier",label:"Tier",hint:"Select JazzHR tier",type:"select",options:["Plus","Pro"]},
      {key:"unitPrice",label:"Unit Price (₱/mo)",placeholder:"25000",hint:"Monthly selling price to client",type:"number"},
-     {key:"qty",label:"Months",placeholder:"12",hint:"Contract duration in months",type:"number"},
+     {key:"qty",label:"Quantity",placeholder:"1",hint:"Number of licenses",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0;
+     const up=+v.unitPrice||0, qty=+v.qty||1, term=+v.term||12;
      const base=v.tier&&v.tier.includes("Pro")?25200:17400;
-     return (up-base)*qty;
+     return (up-base)*qty*term;
    }},
 
   {id:"rfly",name:"Referrly",type:"Reseller",pricingType:"Commission",commissionRate:"Custom Mark-Up",hubspot:"Referrly",
@@ -233,16 +271,16 @@ const PARTNERS = [
    }},
 
   {id:"pbox",name:"PeopleBox",type:"Reseller",pricingType:"Mark-Up",commissionRate:"Mark-Up",hubspot:"PeopleBox",
-   formulaText:"(Unit Price − ₱120) × Qty × 12 − Impl. Fee",
+   formulaText:"(Unit Price − ₱120) × Qty × Term − Impl. Fee",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"300",hint:"Selling price per user/mo",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"300",hint:"Selling price per user/mo",type:"number"},
      {key:"priceType",label:"Price Type",hint:"How pricing is structured",type:"select",options:["Per User","Per License","Per Tiering"]},
      {key:"qty",label:"Quantity (Users)",placeholder:"150",hint:"Number of users/licenses",type:"number"},
      {key:"impl",label:"Implementation Fee (₱)",placeholder:"84000",hint:"One-time implementation fee",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, impl=+v.impl||0;
-     return ((up-120)*qty*12)-impl;
+     const up=+v.unitPrice||0, qty=+v.qty||0, impl=+v.impl||0, term=+v.term||12;
+     return ((up-120)*qty*term)-impl;
    }},
 
   {id:"disprz",name:"Disprz",type:"Reseller",pricingType:"Commission",commissionRate:"30% Yr1 / 20% Yr2-3",hubspot:"Disprz - LXP Essentials / LMS Essentials",
@@ -263,10 +301,10 @@ const PARTNERS = [
   {id:"hubstaff",name:"Hubstaff",type:"Reseller",pricingType:"Commission",commissionRate:"Mark-Up",hubspot:"Hubstaff",
    formulaText:"(Unit Price − Base Cost) × Quantity",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"500",hint:"Your selling price per user",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"500",hint:"Your selling price per user",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License"]},
      {key:"qty",label:"Quantity (Users)",placeholder:"50",hint:"Number of users",type:"number"},
-     {key:"baseCost",label:"Base Cost (₱/user/mo)",placeholder:"350",hint:"Cost per user payable to Hubstaff",type:"number"},
+     {key:"baseCost",label:"Base Cost (₱/user/term)",placeholder:"350",hint:"Cost per user payable to Hubstaff",type:"number"},
    ],
    formula:(v)=>{
      const up=+v.unitPrice||0, qty=+v.qty||0, bc=+v.baseCost||0;
@@ -276,40 +314,25 @@ const PARTNERS = [
   {id:"manatal",name:"Manatal",type:"Reseller",pricingType:"Commission",commissionRate:"20%",hubspot:"Manatal",
    formulaText:"Unit Price × Quantity × Months × 20%",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"1000",hint:"Your selling price per user",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"1000",hint:"Your selling price per user",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License"]},
      {key:"qty",label:"Quantity (Users)",placeholder:"10",hint:"Number of users",type:"number"},
-     {key:"months",label:"Months",placeholder:"12",hint:"Contract duration in months",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||0;
-     return (up*qty*mo)*0.20;
-   }},
-
-    {id:"teamtailor",name:"Team Tailor",type:"Reseller",pricingType:"Commission",commissionRate:"20%",hubspot:"Manatal",
-   formulaText:"Unit Price × Quantity × Months × 20%",
-   lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"1000",hint:"Your selling price per user",type:"number"},
-     {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License"]},
-     {key:"qty",label:"Quantity (Users)",placeholder:"10",hint:"Number of users",type:"number"},
-     {key:"months",label:"Months",placeholder:"12",hint:"Contract duration in months",type:"number"},
-   ],
-   formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||0;
-     return (up*qty*mo)*0.20;
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12;
+     return (up*qty*term)*0.20;
    }},
 
   {id:"olivia-res",name:"Olivia",type:"Reseller",pricingType:"Commission",commissionRate:"20%",hubspot:"OliviaXpense Pro / Advanced / Starter",
    formulaText:"TCV × 20%",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"500",hint:"Selling price per user/mo",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"500",hint:"Selling price per user/mo",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License","Per Tiering"]},
      {key:"qty",label:"Quantity",placeholder:"50",hint:"Number of users/licenses",type:"number"},
-     {key:"months",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||12;
-     return (up*qty*mo)*0.20;
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12;
+     return (up*qty*term)*0.20;
    }},
 
   {id:"infinit",name:"Infinitcare (Dance Fitness / Yoga / Meditation)",type:"Reseller",pricingType:"Commission",commissionRate:"Mark-Up",hubspot:"Infinitcare Dance Fitness / Yoga Sessions",
@@ -369,27 +392,25 @@ const PARTNERS = [
   {id:"olivia-ref",name:"Olivia",type:"Referral",pricingType:"Commission",commissionRate:"20%",hubspot:"—",
    formulaText:"TCV × 20%",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"500",hint:"Selling price per user/mo",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"500",hint:"Selling price per user/mo",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License","Per Tiering"]},
      {key:"qty",label:"Quantity",placeholder:"50",hint:"Number of users/licenses",type:"number"},
-     {key:"months",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||12;
-     return (up*qty*mo)*0.20;
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12;
+     return (up*qty*term)*0.20;
    }},
 
   {id:"britana",name:"Britana Solutions",type:"Referral",pricingType:"Commission",commissionRate:"20%",hubspot:"Britana - Premium / Growth / Starter Plan",
    formulaText:"Subscription Fee × 20%",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"500",hint:"Subscription price per user/mo",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"500",hint:"Subscription price per user/mo",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License","Per Tiering"]},
      {key:"qty",label:"Quantity",placeholder:"50",hint:"Number of users/licenses",type:"number"},
-     {key:"months",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||12;
-     return (up*qty*mo)*0.20;
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12;
+     return (up*qty*term)*0.20;
    }},
 
   {id:"smile",name:"Smile Checks",type:"Referral",pricingType:"Commission",commissionRate:"20%",hubspot:"Smile 25 / 100 / 250 / 500 Checks",
@@ -455,14 +476,13 @@ const PARTNERS = [
   {id:"twala",name:"Twala",type:"Referral",pricingType:"Commission",commissionRate:"20%",hubspot:"Twala - Professional / Business Plus / Business / Volume / API / Enterprise Annual",
    formulaText:"Subscription Fee × 20%",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"500",hint:"Subscription price per user/mo",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"500",hint:"Subscription price per user/mo",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License","Per Tiering"]},
      {key:"qty",label:"Quantity",placeholder:"50",hint:"Number of users/licenses",type:"number"},
-     {key:"months",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||12;
-     return (up*qty*mo)*0.20;
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12;
+     return (up*qty*term)*0.20;
    }},
 
   {id:"techone",name:"TechOne Global – NetSuite",type:"Referral",pricingType:"Commission",commissionRate:"5% of TCV + 10% of Impl.",hubspot:"TechOne - NetSuite",
@@ -471,44 +491,42 @@ const PARTNERS = [
      {key:"unitPrice",label:"Unit Price (₱/license)",placeholder:"10000",hint:"License price per user",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License","Per Tiering"]},
      {key:"qty",label:"Quantity (Licenses)",placeholder:"50",hint:"Number of licenses",type:"number"},
-     {key:"months",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
      {key:"impl",label:"Implementation Fee (₱)",placeholder:"50000",hint:"One-time implementation fee",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||12, impl=+v.impl||0;
-     const tcv=(up*qty*mo);
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12, impl=+v.impl||0;
+     const tcv=(up*qty*term);
      return (tcv*0.50*0.10)+(impl*0.10);
    }},
 
   {id:"beppo",name:"Beppo",type:"Referral",pricingType:"Commission",commissionRate:"10%",hubspot:"Beppo Bookkeeping / Corporate Vat Scale/Grow/Starter",
-   formulaText:"Unit Price × Quantity × 10%",
+   formulaText:"Unit Price × Quantity × Term × 10%",
    lineItems:[
      {key:"unitPrice",label:"Unit Price (₱)",placeholder:"5000",hint:"Subscription price",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License","Per Tiering"]},
      {key:"qty",label:"Quantity",placeholder:"12",hint:"Number of users/licenses",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0;
-     return (up*qty)*0.10;
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12;
+     return (up*qty*term)*0.10;
    }},
 
   {id:"emerge",name:"Emerge",type:"Referral",pricingType:"Commission",commissionRate:"15%",hubspot:"—",
    formulaText:"TCV × 15%",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"500",hint:"Price per user/mo",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"500",hint:"Price per user/mo",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License","Per Tiering"]},
      {key:"qty",label:"Quantity",placeholder:"50",hint:"Number of users/licenses",type:"number"},
-     {key:"months",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||12;
-     return (up*qty*mo)*0.15;
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12;
+     return (up*qty*term)*0.15;
    }},
 
   {id:"juan",name:"Juan",type:"Referral",pricingType:"Commission",commissionRate:"30%",hubspot:"Juan Accounting",
    formulaText:"Subscription Fee × 30%",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/mo)",placeholder:"3000",hint:"Monthly subscription price",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/term)",placeholder:"3000",hint:"Monthly subscription price",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per Tiering"]},
      {key:"qty",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
    ],
@@ -520,54 +538,50 @@ const PARTNERS = [
   {id:"xoxo",name:"Xoxoday",type:"Referral",pricingType:"Commission",commissionRate:"30%",hubspot:"Xoxoday / [TH] Xoxoday",
    formulaText:"Subscription Fee × 30%",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"500",hint:"Subscription price per user/mo",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"500",hint:"Subscription price per user/mo",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License","Per Tiering"]},
      {key:"qty",label:"Quantity",placeholder:"50",hint:"Number of users/licenses",type:"number"},
-     {key:"months",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||12;
-     return (up*qty*mo)*0.30;
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12;
+     return (up*qty*term)*0.30;
    }},
 
   {id:"medicard",name:"Medicard",type:"Referral",pricingType:"Commission",commissionRate:"7.5%",hubspot:"Medicard - RxER Card / HealthPlus Card",
    formulaText:"Subscription Fee × 7.5%",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"300",hint:"Subscription price per user/mo",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"300",hint:"Subscription price per user/mo",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License"]},
      {key:"qty",label:"Quantity (Users)",placeholder:"100",hint:"Number of users",type:"number"},
-     {key:"months",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||12;
-     return (up*qty*mo)*0.075;
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12;
+     return (up*qty*term)*0.075;
    }},
 
   {id:"fynlo",name:"Fynlo",type:"Referral",pricingType:"Commission",commissionRate:"25%",hubspot:"Fynlo - (HC < 20) / (HC < 10)",
    formulaText:"TCV × 25%",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"500",hint:"Price per user/mo",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"500",hint:"Price per user/mo",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per Tiering"]},
      {key:"qty",label:"Quantity (Users)",placeholder:"20",hint:"Number of users (HC)",type:"number"},
-     {key:"months",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||12;
-     return (up*qty*mo)*0.25;
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12;
+     return (up*qty*term)*0.25;
    }},
 
   {id:"advclub",name:"Advantage Club",type:"Referral",pricingType:"Mark-Up",commissionRate:"Mark-Up",hubspot:"Advantage Club",
    formulaText:"Contract Value − Base Cost",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"500",hint:"Selling price per user/mo",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"500",hint:"Selling price per user/mo",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License","Per Tiering"]},
      {key:"qty",label:"Quantity",placeholder:"50",hint:"Number of users/licenses",type:"number"},
-     {key:"months",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
      {key:"baseCost",label:"Base Cost (₱)",placeholder:"35000",hint:"Cost payable to Advantage Club",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||12, bc=+v.baseCost||0;
-     return (up*qty*mo)-bc;
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12, bc=+v.baseCost||0;
+     return (up*qty*term)-bc;
    }},
 
   {id:"qlo",name:"Quick Loans Online (QLO)",type:"Referral",pricingType:"Commission",commissionRate:"Custom",hubspot:"QLO Business Loan",
@@ -586,70 +600,65 @@ const PARTNERS = [
   {id:"tability",name:"Tability",type:"Referral",pricingType:"Commission",commissionRate:"Custom",hubspot:"Tability - Premium / Plus / Basic",
    formulaText:"Contract Value − Base Cost",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"500",hint:"Selling price per user/mo",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"500",hint:"Selling price per user/mo",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License","Per Tiering"]},
      {key:"qty",label:"Quantity",placeholder:"50",hint:"Number of users/licenses",type:"number"},
-     {key:"months",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
      {key:"baseCost",label:"Base Cost (₱)",placeholder:"35000",hint:"Cost payable to Tability",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||12, bc=+v.baseCost||0;
-     return (up*qty*mo)-bc;
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12, bc=+v.baseCost||0;
+     return (up*qty*term)-bc;
    }},
 
   {id:"cast",name:"Cast",type:"Referral",pricingType:"Mark-Up",commissionRate:"Mark-Up",hubspot:"Cast",
    formulaText:"Contract Value − Base Cost",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"500",hint:"Selling price per user/mo",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"500",hint:"Selling price per user/mo",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License","Per Tiering"]},
      {key:"qty",label:"Quantity",placeholder:"50",hint:"Number of users/licenses",type:"number"},
-     {key:"months",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
      {key:"baseCost",label:"Base Cost (₱)",placeholder:"35000",hint:"Cost payable to Cast",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||12, bc=+v.baseCost||0;
-     return (up*qty*mo)-bc;
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12, bc=+v.baseCost||0;
+     return (up*qty*term)-bc;
    }},
 
   {id:"cashko",name:"CashKo",type:"Referral",pricingType:"Commission",commissionRate:"Custom",hubspot:"CashKo HMO Insurance",
    formulaText:"Contract Value − Base Cost",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"500",hint:"Selling price per user/mo",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"500",hint:"Selling price per user/mo",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License","Per Tiering"]},
      {key:"qty",label:"Quantity",placeholder:"50",hint:"Number of users/licenses",type:"number"},
-     {key:"months",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
      {key:"baseCost",label:"Base Cost (₱)",placeholder:"35000",hint:"Cost payable to CashKo",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||12, bc=+v.baseCost||0;
-     return (up*qty*mo)-bc;
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12, bc=+v.baseCost||0;
+     return (up*qty*term)-bc;
    }},
 
   {id:"hive",name:"Hive Health",type:"Referral",pricingType:"Commission",commissionRate:"Custom",hubspot:"Hive Health",
    formulaText:"Contract Value − Base Cost",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"500",hint:"Selling price per user/mo",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"500",hint:"Selling price per user/mo",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License","Per Tiering"]},
      {key:"qty",label:"Quantity",placeholder:"50",hint:"Number of users/licenses",type:"number"},
-     {key:"months",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
      {key:"baseCost",label:"Base Cost (₱)",placeholder:"35000",hint:"Cost payable to Hive Health",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||12, bc=+v.baseCost||0;
-     return (up*qty*mo)-bc;
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12, bc=+v.baseCost||0;
+     return (up*qty*term)-bc;
    }},
 
   {id:"digibeacon",name:"DigiBeacon",type:"Referral",pricingType:"Commission",commissionRate:"10%",hubspot:"DigiBeacon - ClickUp",
    formulaText:"Subscription Fee × 10%",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/mo)",placeholder:"500",hint:"Subscription price per user/mo",type:"number"},
+     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"500",hint:"Subscription price per user/mo",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License","Per Tiering"]},
      {key:"qty",label:"Quantity",placeholder:"50",hint:"Number of users/licenses",type:"number"},
-     {key:"months",label:"Quantity (Months)",placeholder:"12",hint:"Contract duration in months",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, mo=+v.months||12;
-     return (up*qty*mo)*0.10;
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12;
+     return (up*qty*term)*0.10;
    }}
 ];
 
@@ -703,7 +712,7 @@ function addSelected(){
   populateDropdown();
   sel.value = "";
   document.getElementById("add-btn").disabled = true;
-  renderCalc();
+  renderCalc(); renderHS();
   updateSummary();
 }
 
@@ -711,11 +720,94 @@ function removePartner(pid){
   selected.delete(pid);
   delete values[pid];
   populateDropdown(); // re-add to dropdown
-  renderCalc();
+  renderCalc(); renderHS();
   updateSummary();
 }
 
 // ── CALC RENDER ──
+function renderHS(){
+  const sel = PARTNERS.filter(p => selected.has(p.id));
+  const empty = document.getElementById("hs-empty");
+  const table = document.getElementById("hs-table");
+  const tbody = document.getElementById("hs-tbody");
+  if(!sel.length){
+    empty.style.display="block"; table.style.display="none"; return;
+  }
+  empty.style.display="none"; table.style.display="table";
+  let rows = "";
+  let rowNum = 1;
+  sel.forEach(partner => {
+    // Merge stored values with placeholder defaults so preview shows data immediately
+    const stored = values[partner.id] || {};
+    const fieldList = partner.lineItems || partner.fields || [];
+    const defaults = {};
+    fieldList.forEach(f => {
+      if(f.type !== "select" && f.placeholder) defaults[f.key] = parseFloat(f.placeholder) || 0;
+      else if(f.type === "select" && f.options) defaults[f.key] = f.options[0];
+    });
+    const vals = Object.assign({}, defaults, stored);
+    const up = +vals.unitPrice || 0;
+    const qty = +vals.qty || 0;
+    const mo = +vals.months || 1;
+    const impl = +vals.impl || 0;
+    const billingFreq = vals.billingFreq || "Annually";
+    const isOneTime = billingFreq === "One Time Payment";
+    const termMonths = +(vals.term || defaults.term || 12);
+    // Billing frequency multiplier — how many months per billing cycle (for unit price display)
+    const bfMonths = billingFreq === "Annually" ? 12
+                   : billingFreq === "Semi-Annual" ? 6
+                   : billingFreq === "Quarterly" ? 3
+                   : billingFreq === "Monthly" ? 1
+                   : 1; // One Time Payment
+    // Unit price per billing cycle (e.g. Annual = UP × 12)
+    const upPerCycle = up * bfMonths;
+    // Subscription TCV = Unit Price × Qty × Term (full contract value)
+    const subTCV = up * qty * termMonths;
+    // Total TCV includes impl fee
+    const tcv = subTCV + impl;
+    // MRR = Unit Price × Qty (monthly recurring)
+    const mrr = up * qty;
+    // Revenue share stays as per partner formula
+    const rev = partner.formula ? partner.formula(vals) : 0;
+    const priceType = vals.priceType || partner.lineItems?.find(l=>l.key==="priceType")?.options?.[0] || "Per User";
+    const tier = vals.tier ? ` – ${vals.tier.split(" ")[0]}` : "";
+    const badge = partner.type === "Reseller"
+      ? `<span class="hs-badge reseller">Reseller</span>`
+      : `<span class="hs-badge referral">Referral</span>`;
+
+    // Main line item
+    rows += `<tr>
+      <td>${rowNum++}</td>
+      <td><strong>${partner.name}${tier}</strong></td>
+      <td>${badge}</td>
+      <td>${priceType}</td>
+      <td>${billingFreq}</td>
+      <td>${vals.term || defaults.term || 12} mo</td>
+      <td>${qty || "—"}</td>
+      <td>${upPerCycle ? "₱"+upPerCycle.toLocaleString() : "—"}</td>
+      <td>${subTCV ? "₱"+subTCV.toLocaleString() : "—"}</td>
+      <td class="rev">${rev ? "₱"+rev.toLocaleString("en-PH",{minimumFractionDigits:2,maximumFractionDigits:2}) : "—"}</td>
+    </tr>`;
+
+    // Implementation fee row if applicable
+    if(impl > 0){
+      rows += `<tr>
+        <td>${rowNum++}</td>
+        <td><em>Implementation Fee – ${partner.name}</em></td>
+        <td>${badge}</td>
+        <td>Per Service</td>
+        <td>One Time</td>
+        <td>1</td>
+        <td>${qty || "—"}</td>
+        <td>₱${impl.toLocaleString()}</td>
+        <td>₱${impl.toLocaleString()}</td>
+        <td class="rev" style="color:#94a3b8;font-weight:500;">Non-recurring</td>
+      </tr>`;
+    }
+  });
+  tbody.innerHTML = rows;
+}
+
 function renderCalc(){
   const sel = PARTNERS.filter(p => selected.has(p.id));
   const empty = document.getElementById("cempty");
@@ -728,7 +820,21 @@ function renderCalc(){
     const tb = p.type==="Reseller"?"bdg-res":"bdg-ref";
     const ptb = p.pricingType==="Mark-Up"?"bdg-mu":"bdg-com";
     const fieldList = p.lineItems || p.fields;
-    const fieldsHtml = fieldList.map(f=>{
+    const bfVal = (values[p.id]||{}).billingFreq || "Annually";
+    const bfOpts = ["Annually","Semi-Annual","Quarterly","Monthly","One Time Payment"]
+      .map(o=>`<option value="${o}" ${bfVal===o?"selected":""}>${o}</option>`).join("");
+    const isOneTime = bfVal === "One Time Payment";
+    const termHtml = `<div class="fgrp">
+          <label>Term (Months)</label>
+          <input type="number" step="1" min="1" value="${v.term||""}" placeholder="12" oninput="updVal('${p.id}','term',this.value)" style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text);">
+          <div class="fhint">Contract duration in months</div>
+        </div>`;
+    const billingFreqHtml = `<div class="fgrp">
+      <label>Billing Frequency</label>
+      <select onchange="updVal('${p.id}','billingFreq',this.value)" style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;">${bfOpts}</select>
+      <div class="fhint">How the client will be billed</div>
+    </div>`;
+    const fieldsHtml = billingFreqHtml + termHtml + fieldList.map(f=>{
       if(f.type==="select"){
         const opts = f.options.map(o=>`<option value="${o}" ${(v[f.key]||f.options[0])===o?"selected":""}>${o}</option>`).join("");
         return `<div class="fgrp">
@@ -770,7 +876,7 @@ function updVal(pid,key,val){
   const partner = PARTNERS.find(x=>x.id===pid);
   const fieldList = partner ? (partner.lineItems||partner.fields||[]) : [];
   const field = fieldList.find(f=>f.key===key);
-  values[pid][key] = (field && field.type==="select") ? val : (parseFloat(val)||0);
+  values[pid][key] = (field && field.type==="select") || key==="billingFreq" ? val : (parseFloat(val)||0);
   const p = PARTNERS.find(x=>x.id===pid);
   if(p){
     const r = calc(p,values[pid]);
@@ -782,6 +888,9 @@ function updVal(pid,key,val){
     }
   }
   updateSummary();
+  // If billing frequency changed, re-render the card so Term field updates
+  if(key === "billingFreq") renderCalc();
+  renderHS();
 }
 
 // ── SUMMARY ──
