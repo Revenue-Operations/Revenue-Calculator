@@ -300,16 +300,20 @@ const PARTNERS = [
    }},
 
   {id:"hubstaff",name:"Hubstaff",type:"Reseller",pricingType:"Commission",commissionRate:"Mark-Up",hubspot:"Hubstaff",
-   formulaText:"(Unit Price − Base Cost) × Quantity",
+   formulaText:"(Unit Price − Base Cost) × Qty × Term",
    lineItems:[
-     {key:"unitPrice",label:"Unit Price (₱/user/term)",placeholder:"500",hint:"Your selling price per user",type:"number"},
+     {key:"plan",label:"Plan",hint:"Select Hubstaff plan",type:"select",options:["Starter","Grow","Team","Enterprise"]},
+     {key:"unitPrice",label:"Unit Price (₱/seat/mo)",placeholder:"700",hint:"Your selling price per seat/mo",type:"number"},
      {key:"priceType",label:"Price Type",hint:"Pricing structure",type:"select",options:["Per User","Per License"]},
-     {key:"qty",label:"Quantity (Users)",placeholder:"50",hint:"Number of users",type:"number"},
-     {key:"baseCost",label:"Base Cost (₱/user/term)",placeholder:"350",hint:"Cost per user payable to Hubstaff",type:"number"},
+     {key:"qty",label:"Quantity (Seats)",placeholder:"50",hint:"Number of seats",type:"number"},
    ],
    formula:(v)=>{
-     const up=+v.unitPrice||0, qty=+v.qty||0, bc=+v.baseCost||0;
-     return (up-bc)*qty;
+     const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12;
+     const base=v.plan&&v.plan.includes("Enterprise")?1500
+               :v.plan&&v.plan.includes("Team")?600
+               :v.plan&&v.plan.includes("Grow")?450
+               :299.40;
+     return (up-base)*qty*term;
    }},
 
   {id:"manatal",name:"Manatal",type:"Reseller",pricingType:"Commission",commissionRate:"20%",hubspot:"Manatal",
