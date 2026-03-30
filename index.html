@@ -310,9 +310,9 @@ const PARTNERS = [
    formula:(v)=>{
      const up=+v.unitPrice||0, qty=+v.qty||0, term=+v.term||12;
      const base=v.plan&&v.plan.includes("Enterprise")?1500
-               :v.plan&&v.plan.includes("Team")?600
+               :v.plan&&v.plan.includes("Team")?300
                :v.plan&&v.plan.includes("Grow")?450
-               :299.40;
+               :150.00;
      return (up-base)*qty*term;
    }},
 
